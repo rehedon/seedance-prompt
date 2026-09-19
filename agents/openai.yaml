@@ -1,4 +1,4 @@
 interface:
   display_name: "Seedance视频提示词"
-  short_description: "按 2.0 或 2.5 生成单镜头或片内多镜头视频提示词"
-  default_prompt: "使用 $seedance-prompt，根据我指定的 Seedance 2.0 或 2.5，把创意改写成可直接复制的视频提示词。"
+  short_description: "先规划图片资产，再生成 2.0/2.5 视频提示词"
+  default_prompt: "使用 $seedance-prompt，根据我指定的 Seedance 2.0 或 2.5，先规划图片资产和逐任务关联，再生成可直接复制的视频提示词。"

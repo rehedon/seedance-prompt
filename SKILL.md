@@ -1,6 +1,6 @@
 ---
 name: seedance-prompt
-description: Generate or optimize feed-ready video prompts for Seedance/即梦 2.0 or 2.5 from an idea, script, shot description, or referenced images, videos, and audio. Use when the user asks for Seedance 视频提示词、提示词优化、全能参考、首尾帧、视频延长、智能编辑、超长视频、白模或绿幕提示词 and names or needs routing between 2.0 and 2.5. Do not use for a full director storyboard unless the user also requests one.
+description: Generate or optimize feed-ready video prompts and their prerequisite image-asset plan for Seedance/即梦 2.0 or 2.5 from an idea, script, shot description, or referenced images, videos, and audio. Use when the user asks for Seedance 视频提示词、提示词优化、图片资产、全能参考、首尾帧、视频延长、智能编辑、超长视频、白模或绿幕提示词 and names or needs routing between 2.0 and 2.5. Do not use for a full director storyboard unless the user also requests one.
 ---
 
 # Seedance视频提示词
@@ -16,7 +16,7 @@ description: Generate or optimize feed-ready video prompts for Seedance/即梦 2
 - 继续修改已有提示词时沿用已锁定版本，不静默迁移。
 - 用户没有说明版本且上下文也无法判断时，只问一句：“你要用 Seedance 2.0 还是 2.5？”不要同时产出两套猜测结果。
 
-只读取命中版本的参考文件。用户明确指定的版本优先于任何自动判断。
+只读取命中版本的参考文件，并完整读取 [references/asset-workflow.md](references/asset-workflow.md)。用户明确指定的版本优先于任何自动判断。
 
 ## Shot Packaging Gate
 
@@ -36,8 +36,10 @@ description: Generate or optimize feed-ready video prompts for Seedance/即梦 2
 处理输入时：
 
 - 保留用户给定的剧情事实、人物关系、台词原文、镜头意图和禁用项。
-- 不新增会改变叙事结果的事件，不擅自改台词，不杜撰上传素材。
-- 素材按实际上传顺序写成 `@图片1`、`@视频1`、`@音频1`。每个素材只分配清楚职责，如人物、场景、动作、运镜、构图或音色；未提供素材就省略素材层。
+- 不新增会改变叙事结果的事件，不擅自改台词，不把尚未制作或上传的资产冒充为已上传素材。
+- 无论用户是否已经提供图片，生成视频提示词前都先建立必要的图片资产库；详细执行 [references/asset-workflow.md](references/asset-workflow.md)。用户明确要求纯文生视频或跳过资产规划时才省略。
+- 项目资产使用稳定编号：角色 `CH-01`、场景 `SC-01`、道具 `PR-01`、风格/特效 `FX-01`。`@图片N` 只是单条视频生成时按实际上传顺序形成的临时编号，两者不得混用。
+- 已提供的素材仍按实际上传顺序写成 `@图片N`、`@视频N`、`@音频N`，并明确各自只控制人物、场景、动作、运镜、构图或音色中的哪一项。
 - 输入是已有提示词时，先保留有效信息，再消除冲突、抽象形容和不可见指令；不要为了“丰富”而堆砌形容词。
 
 ## Prompt Construction
@@ -59,15 +61,19 @@ description: Generate or optimize feed-ready video prompts for Seedance/即梦 2
 
 ## Output Contract
 
-默认只输出以下三部分：
+默认按以下顺序输出；用户只给一个短镜头时也保留精简资产层：
 
 1. `版本与模式`：版本、任务模式、生成时长、画幅；未获知的界面参数不伪造。
-2. `可直接复制的提示词`：一个独立代码块，除素材引用外不含解释、占位符或内部标签。
-3. `使用提醒`：最多 3 条，只说明素材上传顺序、界面选择或必要的分段/回退；没有提醒则省略。
+2. `图片资产库`：先列资产总表，再为每项待制作图片给独立、可直接用于图片模型的生成提示词；用户已提供图片时标记“用户已有”，不重复假造。
+3. `视频任务资产关联`：每条视频分别列出本次需要上传的资产及顺序，例如“① CH-01 → @图片1；② SC-01 → @图片2”。这里只建立生成时映射，不声称素材已经上传。
+4. `可直接复制的视频提示词`：一个独立代码块，使用该任务映射后的 `@图片N`；除真实素材引用外不含解释、项目资产编号、TODO 或未解析占位符。
+5. `使用提醒`：最多 3 条，只说明素材制作、上传顺序、界面选择或必要的分段/回退；没有提醒则省略。
 
 用户要求多个独立生成任务时，每个任务单独编号并给独立代码块。用户要求一个视频内多镜头时，只给一个代码块，把全部镜头和切镜词写入同一个提示词。跨生成任务继承人物、服装、道具、伤势、位置、光线与动作相位；下一段只推进新动作，不重演上一段。
 
-用户只要“纯提示词”时，仅输出可复制代码块。用户要求解释时，再附简短设计说明。
+多个任务共用同一项目资产编号，但每条任务的 `@图片N` 从 1 重新计算。例如 `CH-01` 在任务 A 可是 `@图片1`，在任务 B 可是 `@图片2`；以当次上传顺序为准。
+
+用户只说“输出纯提示词”时，仍输出图片资产提示词、逐任务关联和视频提示词，但省略解释性分析；只有用户明确说“不要资产规划/只要视频提示词”时才跳过资产层。用户要求解释时，再附简短设计说明。
 
 ## Quality Check
 
@@ -76,6 +82,7 @@ description: Generate or optimize feed-ready video prompts for Seedance/即梦 2
 - 版本、时长和任务模式匹配，没有把 2.5 专属能力写进 2.0。
 - 一个生成任务只有一个序列目标；片内多镜头有明确切镜词，没有被误写成一镜到底；超时内容已在自然边界拆分或选择正确长视频模式。
 - 素材编号存在且用途明确；没有引用用户未上传的素材。
+- 视频正文引用的每个 `@图片N` 都能在该任务的上传映射中找到来源；资产库中的每项图片都有明确用途和可执行图片提示词。
 - 主体身份、空间方位、动作先后、摄影和声音不互相冲突。
 - 台词原文未改，时长足够说完；关键台词后有可见反应空间。
 - 提示词以正向、具体、可执行描述为主，负面限制短而相关。
